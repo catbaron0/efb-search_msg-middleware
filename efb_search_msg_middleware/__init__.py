@@ -35,7 +35,7 @@ class SearchMessageMiddleware(EFBMiddleware):
         self.db: DatabaseManager = None
         self.label: str = '>>Search Results<<'
 
-    def reply_msg(self, message: EFBMsg, text) -> EFBMsg:
+    def reply_msg(self, message: EFBMsg, text: str) -> EFBMsg:
         msg: EFBMsg = EFBMsg()
         msg.chat = message.chat
         msg.author = message.author
@@ -56,7 +56,7 @@ class SearchMessageMiddleware(EFBMiddleware):
             self.logger.info('The configure file does not exist!')
             return
         with open(config_path, 'r') as f:
-            d = yaml.load(f)
+            d = yaml.safe_load(f)
             if not d:
                 self.self.logger.info('Load configure file failed!')
                 return
@@ -120,7 +120,7 @@ class SearchMessageMiddleware(EFBMiddleware):
                 filters['author'] = target.author.chat_uid if \
                     not target.author.is_self else None
             records: Iterator = self.db.select(filters, self.max_num)
-            records_str: List[str] = [self.label,]
+            records_str: List[str] = [self.label, ]
             for record in records:
                 dt = record.time
                 au = record.slave_member_display_name
