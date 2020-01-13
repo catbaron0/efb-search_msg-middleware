@@ -4,7 +4,7 @@ import os
 from typing import Any, Dict, Optional, List, Iterator
 from .db import DatabaseManager
 
-from ehforwarderbot import EFBMiddleware, EFBChat, EFBMsg, MsgType, coordinator
+from ehforwarderbot import Middleware, Message, MsgType, coordinator
 from ehforwarderbot.utils import get_config_path
 from . import __version__ as version
 
@@ -12,7 +12,7 @@ from dateutil.parser import parse as parse_dt
 import yaml
 
 
-class SearchMessageMiddleware(EFBMiddleware):
+class SearchMessageMiddleware(Middleware):
     """
     EFB Middleware - MessageBlockerMiddleware
     Add and manage filters to block some messages.
@@ -35,15 +35,17 @@ class SearchMessageMiddleware(EFBMiddleware):
         self.db: DatabaseManager = None
         self.label: str = '>>Search Results<<'
 
-    def reply_msg(self, message: EFBMsg, text: str) -> EFBMsg:
-        msg: EFBMsg = EFBMsg()
+    def gen_reply_msg(self, message: Message, text: str) -> Message:
+        msg: Message = Message()
         msg.chat = message.chat
         msg.author = message.author
-        msg.author.module_id = self.middleware_id
-        msg.author.module_name = self.middleware_name
-        msg.author.chat_name = 'Search Message'
-        msg.author.module_id = self.middleware_id
-        msg.author.module_name = self.middleware_name
+        msg.author.chat = msg.chat
+        msg.author.name = 'Search Message'
+        msg.author.alias = ''
+        msg.author.description = ''
+        # msg.author.module_id = self.middleware_id
+        # msg.author.module_name = self.middleware_name
+        msg.author.middleware = self
         msg.deliver_to = coordinator.master
         msg.type = MsgType.Text
         msg.uid = message.uid
@@ -63,21 +65,14 @@ class SearchMessageMiddleware(EFBMiddleware):
             return d
 
     @staticmethod
-    def sent_by_master(message: EFBMsg) -> bool:
-        author: EFBChat = message.author
-        try:
-            if author.module_id == 'blueset.telegram':
-                return True
-            else:
-                return False
-        except Exception:
-            return False
+    def sent_by_master(message: Message) -> bool:
+        return message.deliver_to != coordinator.master
 
-    def process_message(self, message: EFBMsg) -> Optional[EFBMsg]:
+    def process_message(self, message: Message) -> Optional[Message]:
         """
         Process a message with middleware
         Returns:
-            Optional[:obj:`.EFBMsg`]: Processed message or None if discarded.
+            Optional[:obj:`.Message`]: Processed message or None if discarded.
         """
         if not self.sent_by_master(message):
             return message
@@ -91,7 +86,7 @@ class SearchMessageMiddleware(EFBMiddleware):
 
             filters: Dict[str: Any] = dict()
             # add filters for select records from db
-            filters['chat'] = f'{chat.module_id} {chat.chat_uid}'
+            filters['chat'] = f'{chat.module_id} {chat.id}'
 
             args: List[str] = msg_text.split()[1:]
             for arg in args:
@@ -103,7 +98,7 @@ class SearchMessageMiddleware(EFBMiddleware):
                         filters['from'] = from_dt
                     except Exception as e:
                         reply_text = f'Failed to parse the from_datetime: {e}'
-                        return self.reply_msg(message, reply_text)
+                        return self.gen_reply_msg(message, reply_text)
                 elif arg.startswith('to:'):
                     # from datetime
                     try:
@@ -111,13 +106,13 @@ class SearchMessageMiddleware(EFBMiddleware):
                         filters['to'] = from_dt
                     except Exception as e:
                         reply_text = f'Failed to parse the to_datetime: {e}'
-                        return self.reply_msg(message, reply_text)
+                        return self.gen_reply_msg(message, reply_text)
                 else:
                     # key word
                     filters['key'] = arg
             if target:
                 # match an author
-                filters['author'] = target.author.chat_uid if \
+                filters['author'] = target.author.id if \
                     not target.author.is_self else None
             records: Iterator = self.db.select(filters, self.max_num)
             records_str: List[str] = [self.label, ]
@@ -135,5 +130,5 @@ class SearchMessageMiddleware(EFBMiddleware):
                 if len(reply_text) > 1000:
                     too_long = '\nThe search results are too long!'
                     reply_text = reply_text[:1000] + '\n...' + too_long
-            return self.reply_msg(message, reply_text)
+            return self.gen_reply_msg(message, reply_text)
         return message
