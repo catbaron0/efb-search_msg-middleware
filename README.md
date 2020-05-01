@@ -17,7 +17,7 @@ Be aware that this is a very early develop version. Please let me know if you fo
 
 注意，这是初期版本可能会不稳定。（也可能没有稳定版本了）
 
-You need to use **MessageBlocker** on top of [EFB](https://ehforwarderbot.readthedocs.io). Please check the document and install EFB first.
+You need to use **SearchMessage** on top of [EFB](https://ehforwarderbot.readthedocs.io). Please check the document and install EFB first.
 
 请先装 EFB。
 
