@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, List, Iterator
 from .db import DatabaseManager
 
 from ehforwarderbot import Middleware, Message, MsgType, coordinator
+from ehforwarderbot.chat import ChatMember
 from ehforwarderbot.utils import get_config_path
 from . import __version__ as version
 
@@ -38,8 +39,8 @@ class SearchMessageMiddleware(Middleware):
     def gen_reply_msg(self, message: Message, text: str) -> Message:
         msg: Message = Message()
         msg.chat = message.chat
-        msg.author = message.author
-        msg.author.chat = msg.chat
+        msg.author = ChatMember(msg.chat)
+        msg.author.uid = self.middleware_id
         msg.author.name = 'Search Message'
         msg.author.alias = ''
         msg.author.description = ''
@@ -80,6 +81,7 @@ class SearchMessageMiddleware(Middleware):
         chat, target = message.chat, message.target
         msg_text: str = message.text.strip()
 
+        reply_text = "No message was found!"
         if msg_text.startswith(self.command):
             if not self.db:
                 self.db = DatabaseManager(self.master)
@@ -118,7 +120,9 @@ class SearchMessageMiddleware(Middleware):
             records_str: List[str] = [self.label, ]
             for record in records:
                 dt = record.time
-                au = record.slave_member_display_name
+                au = record.slave_origin_display_name
+                if not au:
+                    au = record.slave_member_display_name
                 txt = record.text
                 if txt.startswith(self.label):
                     continue

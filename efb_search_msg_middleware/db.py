@@ -71,6 +71,7 @@ class DatabaseManager:
 
         return (self.MsgLog.select(
                         self.MsgLog.time,
+                        self.MsgLog.slave_origin_display_name,
                         self.MsgLog.slave_member_display_name,
                         self.MsgLog.text)
                     .where(reduce(operator.and_, clauses))
