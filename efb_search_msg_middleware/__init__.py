@@ -56,13 +56,11 @@ class SearchMessageMiddleware(Middleware):
     def load_config(self) -> Optional[Dict]:
         config_path: str = get_config_path(self.middleware_id)
         if not os.path.exists(config_path):
-            self.logger.info('The configure file does not exist!')
-            return
+            raise FileNotFoundError('The configure file does not exist!')
         with open(config_path, 'r') as f:
             d = yaml.safe_load(f)
             if not d:
-                self.self.logger.info('Load configure file failed!')
-                return
+                raise RuntimeError('Load configure file failed!')
             return d
 
     @staticmethod
