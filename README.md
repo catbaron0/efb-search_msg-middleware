@@ -33,9 +33,7 @@ You need to use **SearchMessage** on top of [EFB](https://ehforwarderbot.readthe
 
 * Install
 ```
-git clone https://github.com/catbaron0/efb-search_msg-middleware
-cd efb-search_msg-middleware
-Python setup.py install # You may need su permission here
+pip install efb-search_msg-middleware
 ```
 * Register to EFB
 Following [this document](https://ehforwarderbot.readthedocs.io/en/latest/getting-started.html) to edit the config file. The config file by default is `~/.ehforwarderbot/profiles/default/config.yaml`. It should look like:

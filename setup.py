@@ -17,6 +17,7 @@ setup(
     version=__version__,
     description='WeChat Middleware for EH Forwarder Bot to search messages',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     author='catbaron',
     author_email='catbaron@live.cn',
     url='https://github.com/catbaron0/efb-search_msg-middleware',
@@ -26,7 +27,7 @@ setup(
     keywords=['ehforwarderbot', 'EH Forwarder Bot',
               'EH Forwarder Bot Middleware', 'chatbot'],
     classifiers=[
-        "Development Status :: 1 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
